@@ -1,0 +1,111 @@
+.library-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.library-title {
+  font-size: 2.5rem;
+  margin-bottom: 8px;
+}
+
+.library-actions {
+  display: flex;
+  gap: 16px;
+}
+
+.search-container {
+  position: relative;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+}
+
+.search-input {
+  padding-left: 40px;
+  width: 250px;
+}
+
+.filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.loading-text {
+  text-align: center;
+  padding: 100px;
+  color: var(--text-secondary);
+}
+
+.test-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.test-card-header {
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.difficulty-badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.difficulty-hard {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.difficulty-medium {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+}
+
+.difficulty-easy {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+}
+
+.test-duration {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.test-title {
+  font-size: 1.25rem;
+  margin-bottom: 12px;
+}
+
+.test-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+  flex: 1;
+}
+
+.test-tag {
+  background: var(--glass-border);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.start-attempt-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
