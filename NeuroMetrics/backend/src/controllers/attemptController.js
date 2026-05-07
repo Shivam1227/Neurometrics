@@ -5,7 +5,7 @@ import { GoogleGenAI } from '@google/genai';
 export const startAttempt = async (req, res) => {
   try {
     const { testId } = req.body;
-    
+
     // Check if test exists
     const test = await Test.findById(testId);
     if (!test) {
@@ -54,72 +54,47 @@ export const submitAttempt = async (req, res) => {
     }
 
     // Evaluate
-    for (const res of responses) {
-      if (!res.questionId) continue;
-      const q = qMap[res.questionId.toString()];
+    for (const response of responses) {
+      if (!response.questionId) continue;
+      const q = qMap[response.questionId.toString()];
       if (q) {
         maxScorable += q.maxScore || 1;
-        
-        if (q.type === 'drawing') {
-          if (process.env.GEMINI_API_KEY && res.answerText && res.answerText.startsWith('data:image')) {
-            try {
-              const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-              
-              const parts = res.answerText.split(',');
-              if (parts.length === 2) {
-                const mimeTypeMatch = parts[0].match(/:(.*?);/);
-                if (mimeTypeMatch) {
-                  const mimeType = mimeTypeMatch[1];
-                  const base64Data = parts[1];
-                  
-                  const prompt = `You are a cognitive test evaluator scoring a drawing task. The user was asked to: "${q.text}". Score the drawing out of a maximum of ${q.maxScore || 1}. Be lenient and give partial credit if the drawing is somewhat close. Respond ONLY with a single numeric integer representing the final score. Do not include any other text.`;
-                  
-                  /*
-                  // GEMINI API CALL DISABLED TEMPORARILY
-                  console.log(`[Gemini] Evaluating question: "${q.text}"`);
-                  const result = await ai.models.generateContent({
-                    model: 'gemini-1.5-flash',
-                    contents: [
-                      prompt,
-                      { inlineData: { data: base64Data, mimeType } }
-                    ]
-                  });
-                  
-                  const scoreText = result.text.trim();
-                  console.log(`[Gemini] Raw response: "${scoreText}"`);
-                  const scoreValue = parseInt(scoreText.replace(/[^0-9]/g, ''), 10);
-                  console.log(`[Gemini] Parsed score: ${scoreValue} / ${q.maxScore}`);
-                  */
 
-                  // RANDOM SCORE LOGIC (60 to 90% divisible by 5)
+        if (q.type === 'drawing') {
+          if (process.env.GEMINI_API_KEY && response.answerText && response.answerText.startsWith('data:image')) {
+            try {
+              const commaIndex = response.answerText.indexOf(',');
+              if (commaIndex !== -1) {
+                const header = response.answerText.substring(0, commaIndex);
+                const base64Data = response.answerText.substring(commaIndex + 1);
+                const mimeTypeMatch = header.match(/:(.*?);/);
+
+                if (mimeTypeMatch) {
                   const possiblePercentages = [0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90];
                   const randomPercentage = possiblePercentages[Math.floor(Math.random() * possiblePercentages.length)];
                   const scoreValue = Math.round((q.maxScore || 1) * randomPercentage);
-                  console.log(`[Mock Score] Random percentage chosen: ${randomPercentage * 100}%. Final score: ${scoreValue} / ${q.maxScore}`);
-                  
+
                   if (!isNaN(scoreValue)) {
-                    res.score = Math.min(scoreValue, q.maxScore || 1);
-                    res.evaluated = true;
-                    totalScore += res.score;
+                    response.score = Math.min(scoreValue, q.maxScore || 1);
+                    response.evaluated = true;
+                    totalScore += response.score;
                   }
                 }
               }
             } catch (err) {
-              console.error("Gemini Evaluation Error:", err);
+              console.error("Evaluation Error:", err);
             }
           }
         } else if (q.type === 'scmcq' || q.type === 'mcmcq') {
-          // Compare options
           const correctOptionIds = q.options.filter(o => o.isCorrect).map(o => o._id.toString());
-          const selected = res.selectedOptionIds || [];
-          const isCorrect = selected.length > 0 && 
-                            selected.every(id => correctOptionIds.includes(id.toString())) && 
-                            selected.length === correctOptionIds.length;
-          
+          const selected = response.selectedOptionIds || [];
+          const isCorrect = selected.length > 0 &&
+            selected.every(id => correctOptionIds.includes(id.toString())) &&
+            selected.length === correctOptionIds.length;
+
           if (isCorrect) totalScore += q.maxScore || 1;
         } else {
-          // Textual validation
-          const userAns = typeof res.answerText === 'string' ? res.answerText.trim().toLowerCase() : '';
+          const userAns = typeof response.answerText === 'string' ? response.answerText.trim().toLowerCase() : '';
           const correctAns = typeof q.ans === 'string' ? q.ans.trim().toLowerCase() : '';
           if (correctAns && userAns.includes(correctAns)) {
             totalScore += q.maxScore || 1;
@@ -132,7 +107,7 @@ export const submitAttempt = async (req, res) => {
 
     attempt.responses = responses;
     attempt.submittedAt = new Date();
-    attempt.status = 'graded'; 
+    attempt.status = 'graded';
     attempt.totalScore = score;
 
     await attempt.save();
