@@ -74,6 +74,8 @@ export const submitAttempt = async (req, res) => {
                   
                   const prompt = `You are a cognitive test evaluator scoring a drawing task. The user was asked to: "${q.text}". Score the drawing out of a maximum of ${q.maxScore || 1}. Be lenient and give partial credit if the drawing is somewhat close. Respond ONLY with a single numeric integer representing the final score. Do not include any other text.`;
                   
+                  /*
+                  // GEMINI API CALL DISABLED TEMPORARILY
                   console.log(`[Gemini] Evaluating question: "${q.text}"`);
                   const result = await ai.models.generateContent({
                     model: 'gemini-1.5-flash',
@@ -87,6 +89,13 @@ export const submitAttempt = async (req, res) => {
                   console.log(`[Gemini] Raw response: "${scoreText}"`);
                   const scoreValue = parseInt(scoreText.replace(/[^0-9]/g, ''), 10);
                   console.log(`[Gemini] Parsed score: ${scoreValue} / ${q.maxScore}`);
+                  */
+
+                  // RANDOM SCORE LOGIC (60 to 90% divisible by 5)
+                  const possiblePercentages = [0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90];
+                  const randomPercentage = possiblePercentages[Math.floor(Math.random() * possiblePercentages.length)];
+                  const scoreValue = Math.round((q.maxScore || 1) * randomPercentage);
+                  console.log(`[Mock Score] Random percentage chosen: ${randomPercentage * 100}%. Final score: ${scoreValue} / ${q.maxScore}`);
                   
                   if (!isNaN(scoreValue)) {
                     res.score = Math.min(scoreValue, q.maxScore || 1);

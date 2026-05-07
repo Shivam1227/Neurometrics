@@ -26,7 +26,7 @@
 }
 
 .search-input {
-  padding-left: 40px;
+  padding-left: 48px; /* Added extra padding to avoid overlap */
   width: 250px;
 }
 
